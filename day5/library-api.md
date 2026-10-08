@@ -130,3 +130,46 @@ A client requests a book with an ID that does not exist.
 The server can respond with:
 
     404 Not Found
+## 422 Unprocessable Entity
+
+A `422 Unprocessable Entity` response occurs when the request is syntactically valid, but the data violates a business or domain rule.
+
+### Example
+
+A client attempts to create a book using an ISBN that already exists in the library:
+
+    POST /books
+
+    {
+      "title": "Things Fall Apart",
+      "author": "Chinua Achebe",
+      "year": 1958,
+      "isbn": "9780385474542"
+    }
+
+If that ISBN already belongs to another book, the server can respond with:
+
+    422 Unprocessable Entity
+
+The response may explain that the ISBN must be unique.
+
+## 500 Internal Server Error
+
+A `500 Internal Server Error` response occurs when the server encounters an unexpected problem while processing a valid request.
+
+### Example
+
+A client sends a valid request to create a book, but the server experiences an unexpected database failure:
+
+    POST /books
+
+    {
+      "title": "Things Fall Apart",
+      "author": "Chinua Achebe",
+      "year": 1958,
+      "isbn": "9780385474542"
+    }
+
+The server can respond with:
+
+    500 Internal Server Error
