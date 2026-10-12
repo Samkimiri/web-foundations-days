@@ -141,6 +141,7 @@ GROUP BY
 ORDER BY c.course_id;
 
 
+
 -- =====================================================
 -- QUERY 4: STUDENTS WITH NO ENROLMENTS
 -- =====================================================
@@ -154,7 +155,7 @@ SELECT
 FROM students AS s
 LEFT JOIN enrolments AS e
     ON s.student_id = e.student_id
-WHERE e.enrolment_id IS NULL;
+WHERE e.student_id IS NULL;
 
 
 -- =====================================================
