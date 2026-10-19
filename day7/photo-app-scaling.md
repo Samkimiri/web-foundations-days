@@ -277,3 +277,54 @@ Disadvantages:
 - Makes scaling large file transfers more difficult.
 
 **Decision:** Use
+**Decision:** Use direct uploads with short-lived, restricted pre-signed URLs, server-side verification, file-size limits, and safe image decoding. This approach is more suitable for the expected upload volume because it reduces application-server bandwidth and allows file transfers to scale independently.
+
+## 8. Feed Read Flow
+
+1. The client requests the authenticated user's feed.
+2. DNS resolves the service domain, and the load balancer routes the request to a healthy application server.
+3. The application validates the user's identity and permissions.
+4. The application checks Redis for cached feed metadata.
+5. On a cache miss, the application queries the read replica for eligible feed data. It uses the primary database when fresh or read-after-write data is required.
+6. The application returns paginated photo metadata, captions, processing status, and thumbnail URLs.
+7. The CDN serves cached thumbnails and retrieves missing images from object storage.
+8. The application caches suitable feed results according to an expiration and invalidation policy.
+
+Pagination, database indexes, bounded query sizes, and cache monitoring help control backend load as the user base grows.
+
+## 9. Reliability, Security, and Scaling
+
+### Reliability
+
+- Run multiple application-server instances across separate availability zones.
+- Use health checks and redundant load-balancing infrastructure.
+- Use highly available database, cache, and queue services where required.
+- Maintain automated database backups and regularly test restoration.
+- Make background jobs retryable and idempotent.
+- Monitor queue depth, oldest-job age, worker failures, request latency, and error rates.
+- Reconcile uploaded photos that are missing thumbnail jobs or have remained in a processing state too long.
+
+### Security
+
+- Require HTTPS for application and upload traffic.
+- Authenticate requests and verify photo ownership and permissions.
+- Use least-privilege access and short-lived, restricted pre-signed URLs.
+- Verify actual file signatures rather than trusting file extensions or client-supplied MIME types.
+- Enforce file-size and image-dimension limits and safely decode images.
+- Protect private originals from unauthorized access.
+- Apply retention and deletion policies to associated thumbnails and cached content.
+
+### Scaling and monitoring
+
+- Scale application servers horizontally behind the load balancer.
+- Scale thumbnail workers independently according to queue depth and processing time.
+- Use database indexes, pagination, connection pooling, and rate limiting.
+- Monitor read-replica lag, cache hit rates, storage growth, and processing failures.
+- Load-test average traffic, peak traffic, and bursts of photo uploads.
+- Set alerts for high latency, error rates, queue backlogs, and storage capacity.
+
+## 10. Conclusion
+
+SnapShare can scale by separating photo metadata from image binaries, serving images through a CDN, caching frequent feed reads, and using read replicas to reduce primary database load. Direct uploads to object storage reduce pressure on application servers, while a durable queue and idempotent workers make thumbnail generation asynchronous and recoverable.
+
+Upload verification, bounded retries, exponential backoff, dead-letter handling, and reconciliation protect the system against common failures. The design balances performance, consistency, security, reliability, and cost while providing a path to scale beyond one million daily active users.
