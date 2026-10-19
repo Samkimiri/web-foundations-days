@@ -1,0 +1,7 @@
+# Day 8 Reflection
+
+The most difficult concept in this course was understanding how to design systems that remain reliable when many users access them at the same time. At first, it was easy to think about a feature only from the user's perspective, such as clicking a button to reserve a seat. I learned that the backend must also handle simultaneous requests, failures, retries, and inconsistent data. I overcame this by breaking the system into components, tracing each request step by step, and studying how database transactions, constraints, caching, and queues work together.
+
+Based on the feedback I received on my capstone and earlier design assignments, I would improve the completeness and clarity of my documentation. I learned that a design is not finished just because the main idea is correct. Each required section must be present, explanations must be complete, and the final file in GitHub must match the version I intended to submit. I would also improve my diagrams and make the reasoning behind architectural decisions easier to follow.
+
+Next, I want to learn more about backend development and databases, especially SQL, transactions, authentication, and API implementation. I also want to practise testing applications under load and deploying them to a cloud platform. These skills will help me move from designing systems on paper to building and operating applications that real users can depend on.
