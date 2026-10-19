@@ -338,6 +338,35 @@ WHERE id = :seat_id
 ```
 
 The application checks the number of affected rows. A successful update of one row means the hold was acquired. Zero affected rows means the seat was not available to this request. Multi-seat requests must perform the checks and updates in one transaction and roll back if any seat fails.
+### Explicit Transaction Example
+
+The following PostgreSQL-style example illustrates the transaction for holding one seat. The application must check the affected-row count before deciding to commit.
+
+```sql
+BEGIN;
+
+UPDATE seats
+SET status = 'HELD',
+    held_by_user_id = :user_id,
+    hold_expires_at = :expires_at
+WHERE id = :seat_id
+  AND (
+    status = 'AVAILABLE'
+    OR (
+      status = 'HELD'
+      AND hold_expires_at < CURRENT_TIMESTAMP
+    )
+  );
+
+-- Application checks the number of affected rows.
+-- If exactly one row was updated:
+COMMIT;
+
+-- Otherwise, the application executes ROLLBACK
+-- instead of COMMIT and returns HTTP 409 Conflict.
+```
+
+For a request containing multiple seats, the application performs every seat update within the same transaction. If any seat cannot be acquired, it rolls back the entire transaction. This prevents partial holds. Database row locking or conditional updates ensure competing requests cannot both acquire the same seat, while database constraints provide additional protection against duplicate allocations.
 
 ### Payment and confirmation
 
@@ -352,6 +381,7 @@ The application checks the number of affected rows. A successful update of one r
 A transaction makes the set of related database changes succeed or fail together. A row lock or conditional update prevents concurrent requests from both acquiring the same seat. Unique constraints provide additional protection against duplicate allocations. Application-level checks alone are insufficient because two requests can pass the same check at almost the same time.
 
 ## 6. Architecture Diagram and Components
+
 
 ```mermaid
 flowchart TD
@@ -371,6 +401,7 @@ flowchart TD
     WORKERS --> DB
     WORKERS --> NOTIFY[Email and Ticket Notifications]
 ```
+
 
 ### Component responsibilities
 
